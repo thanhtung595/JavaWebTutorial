@@ -1,0 +1,48 @@
+
+<%@ page contentType="text/html;charset=UTF-8" language="java"%>
+
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Product List</title>
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body>
+	<jsp:include page="_header.jsp"></jsp:include>
+	<jsp:include page="_navTop.jsp"></jsp:include>
+
+	<section class="container">
+		<h3>Product List</h3>
+		<a href="productCreate" class="btn btn-success">Create Product</a>
+		<p>${errorString}</p>
+		<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th>Code</th>
+					<th>Name</th>
+					<th>Price</th>
+					<th>Edit</th>
+					<th>Delete</th>
+				</tr>
+			</thead>
+			<tbody>
+				<c:forEach items="${productList}" var="product">
+					<tr>
+						<td>${product.code}</td>
+						<td>${product.name}</td>
+						<td>${product.price}</td>
+						<td><a href="productEdit?code=${product.code}">Edit</a></td>
+						<td><a href="productDelete?code=${product.code}">Delete</a></td>
+					</tr>
+				</c:forEach>
+			</tbody>
+		</table>
+
+	</section>
+
+	<jsp:include page="_footer.jsp"></jsp:include>
+</body>
+</html>
