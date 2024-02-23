@@ -1,0 +1,137 @@
+package NguyenThanhTung.servlet;
+
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import NguyenThanhTung.beans.NguyenThanhTung_2110900048_Book;
+import NguyenThanhTung.conn.NguyenThanhTungConnection;
+import NguyenThanhTung.utils.NguyenThanhTung_BookUtils;
+
+/**
+ * Servlet implementation class NguyenThanhTung_BookEditServlet
+ */
+@WebServlet("/bookEdit")
+public class NguyenThanhTung_BookEditServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * @see HttpServlet#HttpServlet()
+	 */
+	public NguyenThanhTung_BookEditServlet() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// Lay du lieu tren from
+		String maSach = (String) request.getParameter("maSach");
+		Connection conn = null;
+		String errorString = null;
+		NguyenThanhTung_2110900048_Book book = null;
+
+		try {
+			conn = NguyenThanhTungConnection.getMSSQLConnection();
+			book = NguyenThanhTung_BookUtils.findBook(conn, maSach);
+
+			if (book == null) {
+				errorString = "Product not found with code: " + maSach;
+			}
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			errorString = e.getMessage();
+		} finally {
+			try {
+				if (conn != null) {
+					conn.close();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		if (errorString != null) {
+			request.setAttribute("errorString", errorString);
+			RequestDispatcher dispatcher = request.getServletContext()
+					.getRequestDispatcher("/WEB-INF/views/nguyenthanhtung_BookEdit.jsp");
+			dispatcher.forward(request, response);
+		} else {
+			request.setAttribute("book", book);
+			RequestDispatcher dispatcher = request.getServletContext()
+					.getRequestDispatcher("/WEB-INF/views/nguyenthanhtung_BookEdit.jsp");
+			dispatcher.forward(request, response);
+		}
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		request.setCharacterEncoding("UTF-8");
+		String errorString = null;
+
+		// Lay du lieu tren from
+		String maSach = (String) request.getParameter("maSach");
+		String tenSach = (String) request.getParameter("tenSach");
+		String soLuongStr = (String) request.getParameter("soLuong");
+		String donGiaStr = (String) request.getParameter("donGia");
+		String anh = (String) request.getParameter("anh");
+		int soLuong = 0;
+		try {
+			soLuong = Integer.parseInt(soLuongStr);
+		} catch (Exception e) {
+			errorString = e.getMessage();
+		}
+		float donGia = 0;
+		try {
+			donGia = Float.parseFloat(donGiaStr);
+		} catch (Exception e) {
+			errorString = e.getMessage();
+		}
+		NguyenThanhTung_2110900048_Book book = new NguyenThanhTung_2110900048_Book(maSach, tenSach, soLuong,donGia,anh);
+		// Kiem tra code it nhat 1 ky tu
+		String regex = "\\w+";
+		if (book == null || !maSach.matches(regex)) {
+			errorString = "Product code invalid!";
+		}
+
+		if (errorString != null) {
+			request.setAttribute("errorString", errorString);
+			request.setAttribute("book", book);
+			RequestDispatcher dispatcher = request.getServletContext()
+					.getRequestDispatcher("/WEB-INF/views/nguyenthanhtung_BookEdit.jsp");
+
+			dispatcher.forward(request, response);
+			return;
+		}
+		Connection conn = null;
+		try {
+			conn = NguyenThanhTungConnection.getMSSQLConnection();
+			NguyenThanhTung_BookUtils.updateBook(conn, book);
+			response.sendRedirect(request.getContextPath() + "/nguyenthanhtung_BookEdit.jsp");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			errorString = e.getMessage();
+			request.setAttribute("errorString", errorString);
+			RequestDispatcher dispatcher = request.getServletContext()
+					.getRequestDispatcher("/WEB-INF/views/nguyenthanhtung_BookEdit.jsp");
+			dispatcher.forward(request, response);
+		}
+	}
+
+}
